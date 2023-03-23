@@ -1,14 +1,46 @@
-#SimpleMysql
-An ultra simple wrapper for Python MySQLdb with very basic functionality
+# SimpleMysql
+An ultra simple wrapper for `mysql-connector-python` with very basic functionality.
 
-- Kailash Nadh, June 2013
-- Documentation: [http://nadh.in/code/simplemysql](http://nadh.in/code/simplemysql)
-- License: GPL v2
+##### Authors
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+    <tr>
+        <td align="center">
+            <a href="https://github.com/lilkingjr1">
+                <img src="https://avatars.githubusercontent.com/u/4533989" width="50px;" alt=""/><br /><sub><b>David Wolfe</b></sub>
+            </a>
+            <br />
+            <a href="https://github.com/lilkingjr1/simplemysql/commits?author=lilkingjr1" title="Codes">💻</a>
+            <a href="https://github.com/lilkingjr1/simplemysql/commits?author=lilkingjr1" title="Maintains">🔨</a>
+        </td>
+        <td align="center">
+            <a href="https://github.com/milosb793">
+                <img src="https://avatars.githubusercontent.com/u/5012355" width="50px;" alt=""/><br /><sub><b>Milosh Bolic</b></sub>
+            </a>
+            <br />
+            <a href="https://github.com/knadh/simplemysql/commits?author=milosb793" title="Codes">💻</a>
+            <a href="https://github.com/knadh/simplemysql/commits?author=milosb793" title="Contributor">💡</a>
+        </td>
+        <td align="center">
+            <a href="https://github.com/knadh">
+                <img src="https://avatars.githubusercontent.com/u/547147" width="50px;" alt=""/><br /><sub><b>Kailash Nadh</b></sub>
+            </a>
+            <br />
+            <a href="https://github.com/knadh/simplemysql/commits?author=knadh" title="Codes">💻</a>
+            <a href="https://github.com/knadh/simplemysql/commits?author=knadh" title="Original Creator">⭐</a>
+            <a href="https://github.com/knadh/simplemysql/commits?author=knadh" title="Retired from Development">💤</a>
+        </td>
+    </tr>
+</table>
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+Licensed under GNU GPL v2
 
 ## Installation
-With pip or easy_install
+With pip3
 
-```pip install simplemysql``` or ```easy_install simplemysql```
+```pip3 install git+https://github.com/lilkingjr1/simplemysql```
 
 Or from the source
 
@@ -21,6 +53,7 @@ from simplemysql import SimpleMysql
 
 db = SimpleMysql(
 	host="127.0.0.1",
+	port="3306",
 	db="mydatabase",
 	user="username",
 	passwd="password",
@@ -33,15 +66,14 @@ from simplemysql import SimpleMysql
 
 db = SimpleMysql(
     host="127.0.0.1",
+	port="3306",
     db="mydatabase",
     user="username",
     passwd="password",
     ssl = {'cert': 'client-cert.pem', 'key': 'client-key.pem'},
     keep_alive=True # try and reconnect timedout mysql connections?
 )
-
 ```
-
 
 ```python
 # insert a record to the <em>books</em> table
@@ -49,11 +81,11 @@ db.insert("books", {"type": "paperback", "name": "Time Machine", "price": 5.55, 
 
 book = db.getOne("books", ["name"], ["year = 1997"])
 
-print "The book's name is " + book.name
+print "The book's name is " + book['name']
 ```
 
 # Query methods
-insert(), update(), delete(), getOne(), getAll(), lastId(), query()
+insert(), update(), insertBatch(), insertOrUpdate(), delete(), getOne(), getAll(), lastId(), query()
 
 ## insert(table, record{})
 Inserts a single record into a table.
@@ -103,7 +135,7 @@ db.insertOrUpdate("books",
 
 ## getOne(table, fields[], where[], order[], limit[])
 ## getAll(table, fields[], where[], order[], limit[])
-Get a single record or multiple records from a table given a condition (or no condition). The resultant rows are returned as namedtuples. getOne() returns a single namedtuple, and getAll() returns a list of namedtuples.
+Get a single record or multiple records from a table given a condition (or no condition). The resultant rows are returned as namedtuples. getOne() returns a single namedtuple, and getAll() returns a list of namedtuples. `None` is returned if no record(s) can be found.
 
 ```python
 book = db.getOne("books", ["id", "name"])
@@ -127,7 +159,7 @@ books = db.getAll("books",
 books = db.getAll("books",
 	["id", "name", "year"],
 	("year > %s and price < %s", [year, 12.99]),
-	["year", "DESC"],	# ORDER BY year DESC
+	["year", "DESC"],	# ORDER BY year DESC for descending (ASC for ascending)
 	[0, 10]			# LIMIT 0, 10
 )
 ```

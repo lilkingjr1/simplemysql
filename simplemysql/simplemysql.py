@@ -2,7 +2,7 @@
 # vim: fileencoding=utf-8: noexpandtab
 
 """
-    A very simple wrapper for mysql (mysql-connector)
+    A very simple wrapper for MySQL (mysql-connector-python)
 
     Methods:
         getOne() - get a single row
@@ -24,6 +24,9 @@
 
     Updated by: Milosh Bolic
     June 2019
+
+    Updated by: David Wolfe
+    March 2023
 """
 
 import mysql.connector as mysql
@@ -84,9 +87,9 @@ class SimpleMysql:
         row = None
         if result:
             fields = [f[0] for f in cur.description]
-            row = zip(fields, result)
+            row = dict(zip(fields, result))
 
-        return dict(row)
+        return row
 
     def getAll(self, table=None, fields='*', where=None, order=None, limit=None):
         """Get all results
@@ -219,13 +222,13 @@ class SimpleMysql:
             self.cur.execute(sql, params)
         except mysql.OperationalError as e:
             # mysql timed out. reconnect and retry once
-            if e[0] == 2006:
+            if e.errno in [2006, 2013]:
                 self.connect()
                 self.cur.execute(sql, params)
             else:
                 raise
         except:
-            print("Query failed")
+            print("MySQL query failed!")
             raise
 
         return self.cur
