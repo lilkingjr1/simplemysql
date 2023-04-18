@@ -1,4 +1,4 @@
-# SimpleMysql
+# SimpleMySQL
 An ultra simple wrapper for `mysql-connector-python` with very basic functionality.
 
 ##### Authors
@@ -47,7 +47,7 @@ Or from the source
 ```python setup.py install```
 
 # Usage
-## For normal connection
+## For normal connection:
 ```python
 from simplemysql import SimpleMysql
 
@@ -57,35 +57,53 @@ db = SimpleMysql(
 	db="mydatabase",
 	user="username",
 	passwd="password",
+	autocommit=False, # optional kwarg
 	keep_alive=True # try and reconnect timedout mysql connections?
 )
 ```
-## For SSL Connection
+## For SSL Connection:
 ```python
 from simplemysql import SimpleMysql
 
 db = SimpleMysql(
-    host="127.0.0.1",
+	host="127.0.0.1",
 	port="3306",
-    db="mydatabase",
-    user="username",
-    passwd="password",
-    ssl = {'cert': 'client-cert.pem', 'key': 'client-key.pem'},
-    keep_alive=True # try and reconnect timedout mysql connections?
+	db="mydatabase",
+	user="username",
+	passwd="password",
+	ssl = {'cert': 'client-cert.pem', 'key': 'client-key.pem'},
+	keep_alive=True # try and reconnect timedout mysql connections?
 )
 ```
-
+## Usage example:
 ```python
-# insert a record to the <em>books</em> table
-db.insert("books", {"type": "paperback", "name": "Time Machine", "price": 5.55, year: "1997"})
+# create table, if it doesn't already exist
+self.db.query("CREATE TABLE IF NOT EXISTS books (id INT AUTO_INCREMENT PRIMARY KEY, type VARCHAR(255), name VARCHAR(255), price DECIMAL(, 2), year INT)")
 
-book = db.getOne("books", ["name"], ["year = 1997"])
+# insert a record to the "books" table
+db.insert("books", {"type": "paperback", "name": "Time Machine", "price": 5.55, "year": 1997})
 
-print "The book's name is " + book['name']
+# retrieve a single record that contains the "name" attribute with a "year" of 1997 from the "books" table
+book = db.getOne("books", ["name"], ("year=%s", [1997]))
+
+# access the "name" attribute from the returned record
+print("The book's name is " + book['name'])
 ```
 
 # Query methods
-insert(), update(), insertBatch(), insertOrUpdate(), delete(), getOne(), getAll(), lastId(), query()
+| Return Type | Methods |
+| ----------- | ------- |
+| void | [insert(table, record{})](#inserttable-record) |
+| void | [insertBatch(table, rows{})](#insertbatchtable-rows) |
+| void | [update(table, row{}, condition[])](#updatetable-row-condition) |
+| void | [insertOrUpdate(table, row{}, key)](#insertorupdatetable-row-key) |
+| namedtuple | [getOne(table, fields[], where[], order[], limit[])](#getonetable-fields-where-order-limit) |
+| namedtuple[] | [getAll(table, fields[], where[], order[], limit[]))](#getalltable-fields-where-order-limit) |
+| void | [delete(table, fields[], condition[], order[], limit[])](#deletetable-fields-condition-order-limit) |
+| int | [lastId()](#lastid) |
+| str | [lastQuery()](#lastquery) |
+| MySQLdb.Cursor | [query(string)](#querystring) |
+| void | [commit()](#commit) |
 
 ## insert(table, record{})
 Inserts a single record into a table.
@@ -93,6 +111,14 @@ Inserts a single record into a table.
 ```python
 db.insert("food", {"type": "fruit", "name": "Apple", "color": "red"})
 db.insert("books", {"type": "paperback", "name": "Time Machine", "price": 5.55})
+```
+
+## insertBatch(table, rows{})
+Insert Multiple values into table.
+
+```python
+# insert multiple values in table
+db.insertBatch("books", [{"discount": 0},{"discount":1},{"discount":3}])
 ```
 
 ## update(table, row{}, condition[])
@@ -114,13 +140,6 @@ db.update("books",
 	("id=%s AND year=%s", [id, year])
 )
 ```
-## insertBatch(table, rows{})
-Insert Multiple values into table.
-
-```python
-# insert multiple values in table
-db.insertBatch("books", [{"discount": 0},{"discount":1},{"discount":3}])
-```
 
 ## insertOrUpdate(table, row{}, key)
 Insert a new row, or update if there is a primary key conflict.
@@ -134,11 +153,12 @@ db.insertOrUpdate("books",
 ```
 
 ## getOne(table, fields[], where[], order[], limit[])
-## getAll(table, fields[], where[], order[], limit[])
-Get a single record or multiple records from a table given a condition (or no condition). The resultant rows are returned as namedtuples. getOne() returns a single namedtuple, and getAll() returns a list of namedtuples. `None` is returned if no record(s) can be found.
+Get a single record from a table given a condition (or no condition). The resultant row is returned as a single namedtuple. `None` is returned if no record can be found.
 
 ```python
 book = db.getOne("books", ["id", "name"])
+
+print(f"Book {book['name']} has ID of {book['id']}")
 ```
 
 ```python
@@ -146,12 +166,19 @@ book = db.getOne("books", ["id", "name"])
 book = db.getOne("books", ["name", "year"], ("id=1"))
 ```
 
+## getAll(table, fields[], where[], order[], limit[])
+Get multiple records from a table given a condition (or no condition). The resultant rows are returned as a list of namedtuples. `None` is returned if no record(s) can be found.
+
 ```python
 # get multiple rows based on a parametrized condition
 books = db.getAll("books",
 	["id", "name"],
 	("year > %s and price < %s", [year, 12.99])
 )
+
+print("All books that match conditions:\n")
+for record in books:
+	print(f"{record['name']}\n")
 ```
 
 ```python
@@ -163,22 +190,9 @@ books = db.getAll("books",
 	[0, 10]			# LIMIT 0, 10
 )
 ```
-## lastId()
-Get the last insert id
-```python
-# get the last insert ID
-db.lastId()
-```
-
-## lastQuery()
-Get the last query executed
-```python
-# get the SQL of the last executed query
-db.lastQuery()
-```
 
 ## delete(table, fields[], condition[], order[], limit[])
-Delete one or more records based on a condition (or no condition)
+Delete one or more records based on a condition (or no condition).
 
 ```python
 # delete all rows
@@ -188,7 +202,23 @@ db.delete("books")
 db.delete("books", ("price > %s AND year < %s", [25, 1999]))
 ```
 
-## query(table)
+## lastId()
+Get the last insert ID.
+
+```python
+# get the last insert ID
+db.lastId()
+```
+
+## lastQuery()
+Get the last query executed.
+
+```python
+# get the SQL of the last executed query
+db.lastQuery()
+```
+
+## query(string)
 Run a raw SQL query. The MySQLdb cursor is returned.
 
 ```python
@@ -197,7 +227,7 @@ db.query("DELETE FROM books WHERE year > 2005")
 ```
 
 ## commit()
-Insert, update, and delete operations on transactional databases such as innoDB need to be committed
+Insert, update, and delete operations on transactional databases such as innoDB need to be committed.
 
 ```python
 # Commit all pending transaction queries
