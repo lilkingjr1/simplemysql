@@ -91,22 +91,22 @@ print("The book's name is " + book['name'])
 ```
 
 # Query methods
-| Return Type | Methods |
+| Returns | Methods |
 | ----------- | ------- |
-| void | [insert(table, record{})](#inserttable-record) |
-| void | [insertBatch(table, rows{})](#insertbatchtable-rows) |
-| void | [update(table, row{}, condition[])](#updatetable-row-condition) |
-| void | [insertOrUpdate(table, row{}, key)](#insertorupdatetable-row-key) |
+| int | [insert(table, record{})](#inserttable-record) |
+| int | [insertBatch(table, rows{})](#insertbatchtable-rows) |
+| int | [update(table, row{}, condition[])](#updatetable-row-condition) |
+| int | [insertOrUpdate(table, row{}, key)](#insertorupdatetable-row-key) |
 | namedtuple | [getOne(table, fields[], where[], order[], limit[])](#getonetable-fields-where-order-limit) |
 | namedtuple[] | [getAll(table, fields[], where[], order[], limit[]))](#getalltable-fields-where-order-limit) |
-| void | [delete(table, fields[], condition[], order[], limit[])](#deletetable-fields-condition-order-limit) |
+| int | [delete(table, fields[], condition[], order[], limit[])](#deletetable-fields-condition-order-limit) |
 | int | [lastId()](#lastid) |
 | str | [lastQuery()](#lastquery) |
 | MySQLdb.Cursor | [query(string)](#querystring) |
 | void | [commit()](#commit) |
 
 ## insert(table, record{})
-Inserts a single record into a table.
+Inserts a single record into a table. Returns number of rows affected.
 
 ```python
 db.insert("food", {"type": "fruit", "name": "Apple", "color": "red"})
@@ -114,7 +114,7 @@ db.insert("books", {"type": "paperback", "name": "Time Machine", "price": 5.55})
 ```
 
 ## insertBatch(table, rows{})
-Insert Multiple values into table.
+Insert Multiple values into table. Returns number of rows affected.
 
 ```python
 # insert multiple values in table
@@ -122,7 +122,7 @@ db.insertBatch("books", [{"discount": 0},{"discount":1},{"discount":3}])
 ```
 
 ## update(table, row{}, condition[])
-Update one more or rows based on a condition (or no condition).
+Update one more or rows based on a condition (or no condition). Returns number of rows affected.
 
 ```python
 # update all rows
@@ -137,12 +137,12 @@ db.update("books",
 # update rows based on a parametrized condition
 db.update("books",
 	{"discount": 10},
-	("id=%s AND year=%s", [id, year])
+	[f"id={id} AND year={year}"]
 )
 ```
 
 ## insertOrUpdate(table, row{}, key)
-Insert a new row, or update if there is a primary key conflict.
+Insert a new row, or update if there is a primary key conflict. Returns number of rows affected.
 
 ```python
 # insert a book with id 123. if it already exists, update values
@@ -192,7 +192,7 @@ books = db.getAll("books",
 ```
 
 ## delete(table, fields[], condition[], order[], limit[])
-Delete one or more records based on a condition (or no condition).
+Delete one or more records based on a condition (or no condition). Returns number of rows affected.
 
 ```python
 # delete all rows
