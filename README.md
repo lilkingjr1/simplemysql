@@ -103,6 +103,7 @@ print("The book's name is " + book['name'])
 | int | [lastId()](#lastid) |
 | str | [lastQuery()](#lastquery) |
 | MySQLdb.Cursor | [query(string)](#querystring) |
+| tuple[] | [call(procedure, params)](#callprocedure-params) |
 | void | [commit()](#commit) |
 
 ## insert(table, record{})
@@ -224,6 +225,18 @@ Run a raw SQL query. The MySQLdb cursor is returned.
 ```python
 # run a raw SQL query
 db.query("DELETE FROM books WHERE year > 2005")
+```
+
+## call(procedure, params[])
+Calls/runs a stored procedure by name in the connected database. All return values of the procedure are fetched and returned as a tuple list. `None` is returned if the procedure does not return anything.
+
+```python
+# call a stored procedure in the database
+results = db.call("DeleteOldBooksListNew", [1970, 2000])
+
+# print procedure return values
+for book in results:
+    print(f'Title: "{book(0)}", Year: {book(1)}')
 ```
 
 ## commit()

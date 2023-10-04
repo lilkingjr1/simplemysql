@@ -26,7 +26,7 @@
     June 2019
 
     Updated by: David Wolfe
-    March 2023
+    October 2023
 """
 
 import mysql.connector as mysql
@@ -232,6 +232,20 @@ class SimpleMysql:
             raise
 
         return self.cur
+
+    def call(self, procedure=None, params=[]):
+        """Call a stored procedure
+            procedure = (str) procedure_name
+            params = [*args]
+        """
+        
+        try:
+            self.cur.callproc(procedure, params)
+            for result in self.cur.stored_results():
+                return result.fetchall()
+        except:
+            print("MySQL stored procedure call failed!")
+            raise
 
     def commit(self):
         """Commit a transaction (transactional engines like InnoDB require this)"""
