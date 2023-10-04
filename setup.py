@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
 	name="simplemysql",
-	version="1.3",
+	version="1.4",
 	description="An ultra simple wrapper for Python MySQLdb with very basic functionality",
 	author="Kailash Nadh, David Wolfe",
 	author_email="rehlmgaming@gmail.com",
