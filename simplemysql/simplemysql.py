@@ -30,7 +30,6 @@
 """
 
 import mysql.connector as mysql
-from collections import namedtuple
 from itertools import repeat
 
 
@@ -140,8 +139,8 @@ class SimpleMysql:
 
         rows = None
         if result:
-            Row = namedtuple("Row", [f[0] for f in cur.description])
-            rows = [Row(*r) for r in result]
+            fields = [f[0] for f in cur.description]
+            rows = [dict(zip(fields, r)) for r in result]
 
         return rows
 
