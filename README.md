@@ -97,8 +97,9 @@ print("The book's name is " + book['name'])
 | int | [insertBatch(table, rows{})](#insertbatchtable-rows) |
 | int | [update(table, row{}, condition[])](#updatetable-row-condition) |
 | int | [insertOrUpdate(table, row{}, key)](#insertorupdatetable-row-key) |
-| namedtuple | [getOne(table, fields[], where[], order[], limit[])](#getonetable-fields-where-order-limit) |
-| namedtuple[] | [getAll(table, fields[], where[], order[], limit[]))](#getalltable-fields-where-order-limit) |
+| dict | [getOne(table, fields[], where[], order[], limit[])](#getonetable-fields-where-order-limit) |
+| dict[] | [getAll(table, fields[], where[], order[], limit[]))](#getalltable-fields-where-order-limit) |
+| dict[] | [leftJoin(tables(2), fields(), join_fields(2), where=[], order=[], limit=[])](#leftJointables2-fields-join_fields2-where-order-limit) |
 | int | [delete(table, fields[], condition[], order[], limit[])](#deletetable-fields-condition-order-limit) |
 | int | [lastId()](#lastid) |
 | str | [lastQuery()](#lastquery) |
@@ -154,7 +155,7 @@ db.insertOrUpdate("books",
 ```
 
 ## getOne(table, fields[], where[], order[], limit[])
-Get a single record from a table given a condition (or no condition). The resultant row is returned as a single namedtuple. `None` is returned if no record can be found.
+Get a single record from a table given a condition (or no condition). The resultant row is returned as a single dictionary. `None` is returned if no record can be found.
 
 ```python
 book = db.getOne("books", ["id", "name"])
@@ -168,7 +169,7 @@ book = db.getOne("books", ["name", "year"], ("id=1"))
 ```
 
 ## getAll(table, fields[], where[], order[], limit[])
-Get multiple records from a table given a condition (or no condition). The resultant rows are returned as a list of namedtuples. `None` is returned if no record(s) can be found.
+Get multiple records from a table given a condition (or no condition). The resultant rows are returned as a list of dictionaries. `None` is returned if no record(s) can be found.
 
 ```python
 # get multiple rows based on a parametrized condition
@@ -190,6 +191,26 @@ books = db.getAll("books",
 	["year", "DESC"],	# ORDER BY year DESC for descending (ASC for ascending)
 	[0, 10]			# LIMIT 0, 10
 )
+```
+
+## leftJoin(tables(2), fields()[], join_fields(2), where=[], order=[], limit=[])
+Get multiple records, for multiple fields, spanning two tables, given a condition (or no condition) for the first table and two joining fields that would share the same value between tables. The resultant rows are returned as a list of dictionaries. `None` is returned if no record(s) can be found.
+
+```python
+# get multiple records for multiple fields spanning two tables that share a common field, based on a parametrized condition
+book_sales = db.leftJoin(
+    ("books", "transactions"),
+    (
+        ["edition"], # "books" fields
+        ["fname", "date"] # "transactions" fields
+    ),
+    ("id", "book_id"), # same id number in both tables
+    ("name=%s", [book_name])
+)
+
+print("All sales that match book name:\n")
+for sale in book_sales:
+	print(f"{sale['fname']} purchased {sale['edition']} edition on {sale['date']}")
 ```
 
 ## delete(table, fields[], condition[], order[], limit[])
