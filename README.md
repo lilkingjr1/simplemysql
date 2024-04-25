@@ -101,10 +101,10 @@ print("The book's name is " + book['name'])
 | dict[] | [getAll(table, fields[], where[], order[], limit[]))](#getalltable-fields-where-order-limit) |
 | dict[] | [leftJoin(tables(2), fields(), join_fields(2), where=[], order=[], limit=[])](#leftJointables2-fields-join_fields2-where-order-limit) |
 | int | [delete(table, fields[], condition[], order[], limit[])](#deletetable-fields-condition-order-limit) |
+| tuple[] | [call(procedure, params)](#callprocedure-params) |
 | int | [lastId()](#lastid) |
 | str | [lastQuery()](#lastquery) |
 | MySQLdb.Cursor | [query(string)](#querystring) |
-| tuple[] | [call(procedure, params)](#callprocedure-params) |
 | void | [commit()](#commit) |
 
 ## insert(table, record{})
@@ -131,13 +131,15 @@ Update one more or rows based on a condition (or no condition). Returns number o
 db.update("books", {"discount": 0})
 
 # update rows based on a simple hardcoded condition
-db.update("books",
+db.update(
+	"books",
 	{"discount": 10},
 	["id=1"]
 )
 
 # update rows based on a parametrized condition
-db.update("books",
+db.update(
+	"books",
 	{"discount": 10},
 	[f"id={id} AND year={year}"]
 )
@@ -148,9 +150,10 @@ Insert a new row, or update if there is a primary key conflict. Returns number o
 
 ```python
 # insert a book with id 123. if it already exists, update values
-db.insertOrUpdate("books",
-		{"id": 123, type": "paperback", "name": "Time Machine", "price": 5.55},
-		"id"
+db.insertOrUpdate(
+	"books",
+	{"id": 123, type": "paperback", "name": "Time Machine", "price": 5.55},
+	"id"
 )
 ```
 
@@ -168,12 +171,18 @@ print(f"Book {book['name']} has ID of {book['id']}")
 book = db.getOne("books", ["name", "year"], ("id=1"))
 ```
 
+```python
+# get all columns of first result/row of a table
+book = db.getOne("books", ["*"])
+```
+
 ## getAll(table, fields[], where[], order[], limit[])
 Get multiple records from a table given a condition (or no condition). The resultant rows are returned as a list of dictionaries. `None` is returned if no record(s) can be found.
 
 ```python
 # get multiple rows based on a parametrized condition
-books = db.getAll("books",
+books = db.getAll(
+	"books",
 	["id", "name"],
 	("year > %s and price < %s", [year, 12.99])
 )
@@ -185,11 +194,22 @@ for record in books:
 
 ```python
 # get multiple rows based on a parametrized condition with an order and limit specified
-books = db.getAll("books",
+books = db.getAll(
+	"books",
 	["id", "name", "year"],
 	("year > %s and price < %s", [year, 12.99]),
 	["year", "DESC"],	# ORDER BY year DESC for descending (ASC for ascending)
 	[0, 10]			# LIMIT 0, 10
+)
+```
+
+***Note: `getOne()` and `getAll()` work with View Objects as well:***
+
+```python
+# get all rows and columns of a view
+discounted_books = db.getAll(
+	"discounted_books_view",
+	["*"]
 )
 ```
 
@@ -224,6 +244,17 @@ db.delete("books")
 db.delete("books", ("price > %s AND year < %s", [25, 1999]))
 ```
 
+## call(procedure, params[])
+Calls/runs a stored procedure by name in the connected database. All return values of the procedure are fetched and returned as a tuple list. `None` is returned if the procedure does not return anything.
+
+```python
+# call a stored procedure in the database
+results = db.call("DeleteOldBooksListNew", [1970, 2000])
+
+# print procedure return values
+for book in results:
+    print(f'Title: "{book(0)}", Year: {book(1)}')
+
 ## lastId()
 Get the last insert ID.
 
@@ -247,17 +278,6 @@ Run a raw SQL query. The MySQLdb cursor is returned.
 # run a raw SQL query
 db.query("DELETE FROM books WHERE year > 2005")
 ```
-
-## call(procedure, params[])
-Calls/runs a stored procedure by name in the connected database. All return values of the procedure are fetched and returned as a tuple list. `None` is returned if the procedure does not return anything.
-
-```python
-# call a stored procedure in the database
-results = db.call("DeleteOldBooksListNew", [1970, 2000])
-
-# print procedure return values
-for book in results:
-    print(f'Title: "{book(0)}", Year: {book(1)}')
 ```
 
 ## commit()

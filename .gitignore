@@ -3,6 +3,8 @@
 *.py[cod]
 .cache
 .local
+build/
+simplemysql.egg-info/
 
 # JetBrains IDE
 .idea/
