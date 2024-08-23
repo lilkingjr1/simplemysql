@@ -214,7 +214,7 @@ discounted_books = db.getAll(
 ```
 
 ## leftJoin(tables(2), fields()[], join_fields(2), where=[], order=[], limit=[])
-Get multiple records, for multiple fields, spanning two tables, given a condition (or no condition) for the first table and two joining fields that would share the same value between tables. The resultant rows are returned as a list of dictionaries. `None` is returned if no record(s) can be found.
+Get multiple records, for multiple fields, spanning two tables, given a condition (or no condition) against both tables and two joining fields that would share the same value between tables. The resultant rows are returned as a list of dictionaries. `None` is returned if no record(s) can be found.
 
 ```python
 # get multiple records for multiple fields spanning two tables that share a common field, based on a parametrized condition
@@ -225,10 +225,10 @@ book_sales = db.leftJoin(
         ["fname", "date"] # "transactions" fields
     ),
     ("id", "book_id"), # same id number in both tables
-    ("name=%s", [book_name])
+    ("books.name=%s and transactions.fname=%s", [book_name, first_name])
 )
 
-print("All sales that match book name:\n")
+print(f"All sales that match book {book_name} and customer {first_name}:\n")
 for sale in book_sales:
 	print(f"{sale['fname']} purchased {sale['edition']} edition on {sale['date']}")
 ```
